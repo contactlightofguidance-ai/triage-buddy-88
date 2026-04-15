@@ -1,16 +1,30 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import PatientForm from "@/components/PatientForm";
+import { Activity } from "lucide-react";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl medical-gradient flex items-center justify-center shadow-sm">
+            <Activity className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-foreground">MedTriage</h1>
+            <p className="text-xs text-muted-foreground">Système intelligent de triage des urgences</p>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="container mx-auto px-4 py-8 flex items-start justify-center min-h-[calc(100vh-73px)]">
+        <div className="w-full max-w-lg pt-8">
+          <PatientForm />
+        </div>
+      </main>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
