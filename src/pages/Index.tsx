@@ -18,9 +18,14 @@ const Index = () => {
               <p className="text-xs text-muted-foreground">Système intelligent de triage des urgences</p>
             </div>
           </div>
-          <Link to="/patients">
-            <Button variant="outline" size="sm">Voir la file d'attente</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/dashboard">
+              <Button variant="outline" size="sm">Tableau de bord</Button>
+            </Link>
+            <Link to="/patients">
+              <Button variant="outline" size="sm">File d'attente</Button>
+            </Link>
+          </div>
         </div>
       </header>
 
