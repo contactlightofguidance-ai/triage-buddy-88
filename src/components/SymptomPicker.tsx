@@ -1,15 +1,24 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+import feverImg from "@/assets/symptoms/fever.png";
+import coughImg from "@/assets/symptoms/cough.png";
+import chestPainImg from "@/assets/symptoms/chest-pain.png";
+import headacheImg from "@/assets/symptoms/headache.png";
+import vomitingImg from "@/assets/symptoms/vomiting.png";
+import breathingImg from "@/assets/symptoms/breathing.png";
+import abdominalImg from "@/assets/symptoms/abdominal.png";
+import fractureImg from "@/assets/symptoms/fracture.png";
+
 const SYMPTOMS = [
-  { id: "fever", label: "Fièvre", emoji: "🤒" },
-  { id: "cough", label: "Toux", emoji: "🤧" },
-  { id: "chest-pain", label: "Douleur thoracique", emoji: "💔" },
-  { id: "headache", label: "Maux de tête", emoji: "🤕" },
-  { id: "vomiting", label: "Vomissements", emoji: "🤮" },
-  { id: "breathing", label: "Difficultés respiratoires", emoji: "😮‍💨" },
-  { id: "abdominal", label: "Douleur abdominale", emoji: "🤢" },
-  { id: "fracture", label: "Fracture/Trauma", emoji: "🦴" },
+  { id: "fever", label: "Fièvre", img: feverImg },
+  { id: "cough", label: "Toux", img: coughImg },
+  { id: "chest-pain", label: "Douleur thoracique", img: chestPainImg },
+  { id: "headache", label: "Maux de tête", img: headacheImg },
+  { id: "vomiting", label: "Vomissements", img: vomitingImg },
+  { id: "breathing", label: "Difficultés respiratoires", img: breathingImg },
+  { id: "abdominal", label: "Douleur abdominale", img: abdominalImg },
+  { id: "fracture", label: "Fracture/Trauma", img: fractureImg },
 ] as const;
 
 interface SymptomPickerProps {
@@ -39,14 +48,21 @@ const SymptomPicker = ({ selected, onChange }: SymptomPickerProps) => {
             transition={{ delay: i * 0.04 }}
             onClick={() => toggle(s.label)}
             className={cn(
-              "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-all",
+              "flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all",
               "hover:shadow-sm active:scale-[0.97]",
               isSelected
                 ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30"
                 : "border-border bg-card text-foreground hover:border-primary/40"
             )}
           >
-            <span className="text-xl leading-none">{s.emoji}</span>
+            <img
+              src={s.img}
+              alt={s.label}
+              width={36}
+              height={36}
+              loading="lazy"
+              className="shrink-0 rounded"
+            />
             <span className="truncate">{s.label}</span>
           </motion.button>
         );
