@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import StepIndicator from "@/components/StepIndicator";
 import { Activity, Thermometer, User, ArrowRight, ArrowLeft, Send, Loader2, Wifi, CheckCircle2 } from "lucide-react";
+
+const slideVariants = {
+  enter: (direction: number) => ({ x: direction > 0 ? 80 : -80, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction > 0 ? -80 : 80, opacity: 0 }),
+};
 
 interface FormData {
   name: string;
@@ -24,6 +31,7 @@ interface FormErrors {
 const API_URL = "http://localhost:8000/api/patients";
 
 const PatientForm = () => {
+  const [direction, setDirection] = useState(1);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -59,12 +67,14 @@ const PatientForm = () => {
 
   const handleNext = () => {
     if (validateStep1()) {
+      setDirection(1);
       setStep(2);
       setErrors({});
     }
   };
 
   const handleBack = () => {
+    setDirection(-1);
     setStep(1);
     setErrors({});
   };
@@ -136,13 +146,25 @@ const PatientForm = () => {
 
   if (submitted) {
     return (
-      <Card className="w-full max-w-lg mx-auto shadow-lg border-0">
-        <CardContent className="flex flex-col items-center justify-center py-16 gap-4 step-transition">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-success" />
-          </div>
-          <h3 className="text-xl font-semibold text-foreground">Patient ajouté avec succès</h3>
-          <p className="text-muted-foreground text-sm">Le formulaire sera réinitialisé automatiquement...</p>
+      <Card className="w-full max-w-lg mx-auto shadow-lg border-0 overflow-hidden">
+        <CardContent className="py-16">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            className="flex flex-col items-center justify-center gap-4"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.15 }}
+              className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center"
+            >
+              <CheckCircle2 className="w-8 h-8 text-success" />
+            </motion.div>
+            <h3 className="text-xl font-semibold text-foreground">Patient ajouté avec succès</h3>
+            <p className="text-muted-foreground text-sm">Le formulaire sera réinitialisé automatiquement...</p>
+          </motion.div>
         </CardContent>
       </Card>
     );
@@ -163,116 +185,136 @@ const PatientForm = () => {
         <StepIndicator currentStep={step} totalSteps={2} />
       </CardHeader>
 
-      <CardContent>
-        {step === 1 && (
-          <div className="space-y-4 step-transition">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-1.5 text-sm font-medium">
-                <User className="w-3.5 h-3.5 text-muted-foreground" />
-                Nom du patient <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="name"
-                placeholder="Ex: Jean Dupont"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                className={errors.name ? "border-destructive" : ""}
-              />
-              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="symptoms" className="flex items-center gap-1.5 text-sm font-medium">
-                <Activity className="w-3.5 h-3.5 text-muted-foreground" />
-                Symptômes <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="symptoms"
-                placeholder="Décrivez les symptômes..."
-                value={formData.symptoms}
-                onChange={(e) => handleChange("symptoms", e.target.value)}
-                className={`min-h-[80px] ${errors.symptoms ? "border-destructive" : ""}`}
-              />
-              {errors.symptoms && <p className="text-xs text-destructive">{errors.symptoms}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="age" className="text-sm font-medium text-muted-foreground">
-                Âge (optionnel)
-              </Label>
-              <Input
-                id="age"
-                type="number"
-                placeholder="Ex: 45"
-                value={formData.age}
-                onChange={(e) => handleChange("age", e.target.value)}
-              />
-            </div>
-
-            <Button onClick={handleNext} className="w-full mt-2" size="lg">
-              Suivant
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-4 step-transition">
-            <div className="space-y-2">
-              <Label htmlFor="temperature" className="flex items-center gap-1.5 text-sm font-medium">
-                <Thermometer className="w-3.5 h-3.5 text-muted-foreground" />
-                Température (°C) <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="temperature"
-                type="number"
-                step="0.1"
-                min="30"
-                max="45"
-                placeholder="Ex: 37.5"
-                value={formData.temperature}
-                onChange={(e) => handleChange("temperature", e.target.value)}
-                className={errors.temperature ? "border-destructive" : ""}
-              />
-              {errors.temperature && <p className="text-xs text-destructive">{errors.temperature}</p>}
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full gap-2"
-              onClick={simulateESP32Read}
-              disabled={isReadingTemp}
+      <CardContent className="overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction}>
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="space-y-4"
             >
-              {isReadingTemp ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Wifi className="w-4 h-4" />
-              )}
-              {isReadingTemp ? "Lecture en cours..." : "Lire température depuis ESP32"}
-            </Button>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="flex items-center gap-1.5 text-sm font-medium">
+                  <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  Nom du patient <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Jean Dupont"
+                  value={formData.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className={errors.name ? "border-destructive" : ""}
+                />
+                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              </div>
 
-            <div className="flex gap-3 mt-2">
-              <Button variant="outline" onClick={handleBack} className="flex-1" size="lg">
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Retour
+              <div className="space-y-2">
+                <Label htmlFor="symptoms" className="flex items-center gap-1.5 text-sm font-medium">
+                  <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+                  Symptômes <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="symptoms"
+                  placeholder="Décrivez les symptômes..."
+                  value={formData.symptoms}
+                  onChange={(e) => handleChange("symptoms", e.target.value)}
+                  className={`min-h-[80px] ${errors.symptoms ? "border-destructive" : ""}`}
+                />
+                {errors.symptoms && <p className="text-xs text-destructive">{errors.symptoms}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="age" className="text-sm font-medium text-muted-foreground">
+                  Âge (optionnel)
+                </Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="Ex: 45"
+                  value={formData.age}
+                  onChange={(e) => handleChange("age", e.target.value)}
+                />
+              </div>
+
+              <Button onClick={handleNext} className="w-full mt-2" size="lg">
+                Suivant
+                <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="temperature" className="flex items-center gap-1.5 text-sm font-medium">
+                  <Thermometer className="w-3.5 h-3.5 text-muted-foreground" />
+                  Température (°C) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="temperature"
+                  type="number"
+                  step="0.1"
+                  min="30"
+                  max="45"
+                  placeholder="Ex: 37.5"
+                  value={formData.temperature}
+                  onChange={(e) => handleChange("temperature", e.target.value)}
+                  className={errors.temperature ? "border-destructive" : ""}
+                />
+                {errors.temperature && <p className="text-xs text-destructive">{errors.temperature}</p>}
+              </div>
+
               <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1"
-                size="lg"
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={simulateESP32Read}
+                disabled={isReadingTemp}
               >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                {isReadingTemp ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Send className="w-4 h-4 mr-1" />
+                  <Wifi className="w-4 h-4" />
                 )}
-                {isSubmitting ? "Envoi..." : "Envoyer"}
+                {isReadingTemp ? "Lecture en cours..." : "Lire température depuis ESP32"}
               </Button>
-            </div>
-          </div>
-        )}
+
+              <div className="flex gap-3 mt-2">
+                <Button variant="outline" onClick={handleBack} className="flex-1" size="lg">
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Retour
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1"
+                  size="lg"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-1" />
+                  )}
+                  {isSubmitting ? "Envoi..." : "Envoyer"}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
     </Card>
   );
