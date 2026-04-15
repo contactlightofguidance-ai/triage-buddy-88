@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import StepIndicator from "@/components/StepIndicator";
+import SymptomPicker from "@/components/SymptomPicker";
 import { Activity, Thermometer, User, ArrowRight, ArrowLeft, Send, Loader2, Wifi, CheckCircle2 } from "lucide-react";
 
 const slideVariants = {
@@ -17,7 +18,8 @@ const slideVariants = {
 
 interface FormData {
   name: string;
-  symptoms: string;
+  selectedSymptoms: string[];
+  customSymptom: string;
   age: string;
   temperature: string;
 }
@@ -35,7 +37,8 @@ const PatientForm = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    symptoms: "",
+    selectedSymptoms: [],
+    customSymptom: "",
     age: "",
     temperature: "",
   });
@@ -48,7 +51,8 @@ const PatientForm = () => {
   const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
     if (!formData.name.trim()) newErrors.name = "Le nom est obligatoire";
-    if (!formData.symptoms.trim()) newErrors.symptoms = "Les symptômes sont obligatoires";
+    if (formData.selectedSymptoms.length === 0 && !formData.customSymptom.trim())
+      newErrors.symptoms = "Sélectionnez au moins un symptôme";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,9 +101,13 @@ const PatientForm = () => {
 
     setIsSubmitting(true);
     try {
+      const allSymptoms = [
+        ...formData.selectedSymptoms,
+        ...(formData.customSymptom.trim() ? [formData.customSymptom.trim()] : []),
+      ].join(", ");
       const body = {
         name: formData.name.trim(),
-        symptoms: formData.symptoms.trim(),
+        symptoms: allSymptoms,
         temperature: parseFloat(formData.temperature),
       };
 
@@ -121,7 +129,7 @@ const PatientForm = () => {
       });
 
       setTimeout(() => {
-        setFormData({ name: "", symptoms: "", age: "", temperature: "" });
+        setFormData({ name: "", selectedSymptoms: [], customSymptom: "", age: "", temperature: "" });
         setStep(1);
         setSubmitted(false);
       }, 3000);
@@ -214,16 +222,22 @@ const PatientForm = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="symptoms" className="flex items-center gap-1.5 text-sm font-medium">
+                <Label className="flex items-center gap-1.5 text-sm font-medium">
                   <Activity className="w-3.5 h-3.5 text-muted-foreground" />
                   Symptômes <span className="text-destructive">*</span>
                 </Label>
+                <SymptomPicker
+                  selected={formData.selectedSymptoms}
+                  onChange={(sel) => {
+                    setFormData((prev) => ({ ...prev, selectedSymptoms: sel }));
+                    if (errors.symptoms) setErrors((prev) => ({ ...prev, symptoms: undefined }));
+                  }}
+                />
                 <Textarea
-                  id="symptoms"
-                  placeholder="Décrivez les symptômes..."
-                  value={formData.symptoms}
-                  onChange={(e) => handleChange("symptoms", e.target.value)}
-                  className={`min-h-[80px] ${errors.symptoms ? "border-destructive" : ""}`}
+                  placeholder="Autre symptôme (optionnel)..."
+                  value={formData.customSymptom}
+                  onChange={(e) => handleChange("customSymptom" as keyof FormData, e.target.value)}
+                  className="min-h-[60px] mt-1"
                 />
                 {errors.symptoms && <p className="text-xs text-destructive">{errors.symptoms}</p>}
               </div>
