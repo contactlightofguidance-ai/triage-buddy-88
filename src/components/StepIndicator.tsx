@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface StepIndicatorProps {
   currentStep: number;
@@ -9,24 +10,24 @@ const labels = ["Informations", "IoT / Température"];
 
 const StepIndicator = ({ currentStep, totalSteps }: StepIndicatorProps) => {
   return (
-    <div className="flex items-center gap-2 mt-4">
+    <div className="flex items-center gap-3 mt-5">
       {Array.from({ length: totalSteps }, (_, i) => {
         const stepNum = i + 1;
         const isActive = stepNum === currentStep;
         const isCompleted = stepNum < currentStep;
 
         return (
-          <div key={stepNum} className="flex items-center gap-2 flex-1">
-            <div className="flex items-center gap-2 flex-1">
+          <div key={stepNum} className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-2.5">
               <div
                 className={cn(
-                  "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all duration-300",
-                  isActive && "medical-gradient text-primary-foreground shadow-md",
+                  "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all duration-200",
+                  isActive && "medical-gradient text-primary-foreground shadow-md shadow-primary/25",
                   isCompleted && "bg-success text-success-foreground",
                   !isActive && !isCompleted && "bg-muted text-muted-foreground"
                 )}
               >
-                {isCompleted ? "✓" : stepNum}
+                {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNum}
               </div>
               <span
                 className={cn(
@@ -40,8 +41,8 @@ const StepIndicator = ({ currentStep, totalSteps }: StepIndicatorProps) => {
             {i < totalSteps - 1 && (
               <div
                 className={cn(
-                  "h-0.5 w-8 rounded-full transition-colors shrink-0",
-                  isCompleted ? "bg-success" : "bg-muted"
+                  "h-[2px] flex-1 rounded-full transition-colors",
+                  isCompleted ? "bg-success" : "bg-border"
                 )}
               />
             )}

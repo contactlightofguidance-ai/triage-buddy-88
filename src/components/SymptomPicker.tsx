@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 import feverImg from "@/assets/symptoms/fever.png";
 import coughImg from "@/assets/symptoms/cough.png";
@@ -43,27 +44,37 @@ const SymptomPicker = ({ selected, onChange }: SymptomPickerProps) => {
           <motion.button
             key={s.id}
             type="button"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04 }}
+            transition={{ delay: i * 0.03, duration: 0.2 }}
             onClick={() => toggle(s.label)}
             className={cn(
-              "flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-all",
+              "relative flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm font-medium",
+              "transition-all duration-200 cursor-pointer",
               "hover:shadow-sm active:scale-[0.97]",
               isSelected
-                ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30"
-                : "border-border bg-card text-foreground hover:border-primary/40"
+                ? "border-primary bg-primary/8 text-primary shadow-sm ring-1 ring-primary/20"
+                : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-primary/3"
             )}
           >
             <img
               src={s.img}
               alt={s.label}
-              width={36}
-              height={36}
+              width={32}
+              height={32}
               loading="lazy"
-              className="shrink-0 rounded"
+              className="shrink-0 rounded-lg"
             />
-            <span className="truncate">{s.label}</span>
+            <span className="truncate text-xs">{s.label}</span>
+            {isSelected && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
+              >
+                <Check className="w-2.5 h-2.5 text-primary-foreground" />
+              </motion.div>
+            )}
           </motion.button>
         );
       })}

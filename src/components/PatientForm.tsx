@@ -8,12 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import StepIndicator from "@/components/StepIndicator";
 import SymptomPicker from "@/components/SymptomPicker";
-import { Activity, Thermometer, User, ArrowRight, ArrowLeft, Send, Loader2, Wifi, CheckCircle2 } from "lucide-react";
+import { Activity, Thermometer, User, ArrowRight, ArrowLeft, Send, Loader2, Wifi, CheckCircle2, AlertCircle } from "lucide-react";
 
 const slideVariants = {
-  enter: (direction: number) => ({ x: direction > 0 ? 80 : -80, opacity: 0 }),
+  enter: (direction: number) => ({ x: direction > 0 ? 60 : -60, opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: direction > 0 ? -80 : 80, opacity: 0 }),
+  exit: (direction: number) => ({ x: direction > 0 ? -60 : 60, opacity: 0 }),
 };
 
 interface FormData {
@@ -89,54 +89,43 @@ const PatientForm = () => {
       const simulated = (36 + Math.random() * 4).toFixed(1);
       setFormData((prev) => ({ ...prev, temperature: simulated }));
       setIsReadingTemp(false);
-      toast({
-        title: "Capteur ESP32",
-        description: `Température lue : ${simulated}°C`,
-      });
+      toast({ title: "Capteur ESP32", description: `Température lue : ${simulated}°C` });
     }, 1500);
   };
 
   const handleSubmit = async () => {
     if (!validateStep2()) return;
-
     setIsSubmitting(true);
     try {
       const allSymptoms = [
         ...formData.selectedSymptoms,
         ...(formData.customSymptom.trim() ? [formData.customSymptom.trim()] : []),
       ].join(", ");
-      const body = {
-        name: formData.name.trim(),
-        symptoms: allSymptoms,
-        temperature: parseFloat(formData.temperature),
-      };
 
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          symptoms: allSymptoms,
+          temperature: parseFloat(formData.temperature),
+        }),
       });
 
       if (!response.ok) throw new Error("Erreur serveur");
-
-      const data = await response.json();
-      console.log("Réponse API :", data);
+      await response.json();
 
       setSubmitted(true);
-      toast({
-        title: "Succès",
-        description: "Patient ajouté avec succès",
-      });
+      toast({ title: "Succès", description: "Patient ajouté avec succès" });
 
       setTimeout(() => {
         setFormData({ name: "", selectedSymptoms: [], customSymptom: "", age: "", temperature: "" });
         setStep(1);
         setSubmitted(false);
       }, 3000);
-    } catch (error) {
-      console.error("Erreur API :", error);
+    } catch {
       toast({
-        title: "Erreur",
+        title: "Erreur de connexion",
         description: "Impossible d'ajouter le patient. Vérifiez la connexion API.",
         variant: "destructive",
       });
@@ -154,7 +143,7 @@ const PatientForm = () => {
 
   if (submitted) {
     return (
-      <Card className="w-full max-w-lg mx-auto shadow-lg border-0 overflow-hidden">
+      <Card className="w-full shadow-lg shadow-primary/5 border-0 overflow-hidden">
         <CardContent className="py-16">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -166,11 +155,11 @@ const PatientForm = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.15 }}
-              className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center"
+              className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center"
             >
               <CheckCircle2 className="w-8 h-8 text-success" />
             </motion.div>
-            <h3 className="text-xl font-semibold text-foreground">Patient ajouté avec succès</h3>
+            <h3 className="text-lg font-semibold text-foreground">Patient ajouté avec succès</h3>
             <p className="text-muted-foreground text-sm">Le formulaire sera réinitialisé automatiquement...</p>
           </motion.div>
         </CardContent>
@@ -179,21 +168,21 @@ const PatientForm = () => {
   }
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-lg border-0">
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-lg medical-gradient flex items-center justify-center">
+    <Card className="w-full shadow-lg shadow-primary/5 border-0">
+      <CardHeader className="pb-3 px-6 pt-6">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="w-8 h-8 rounded-xl medical-gradient flex items-center justify-center shadow-sm">
             <Activity className="w-4 h-4 text-primary-foreground" />
           </div>
-          <CardTitle className="text-xl">Nouveau patient</CardTitle>
+          <CardTitle className="text-lg font-bold">Nouveau patient</CardTitle>
         </div>
-        <CardDescription>
-          {step === 1 ? "Informations du patient" : "Données capteur IoT"}
+        <CardDescription className="text-xs">
+          {step === 1 ? "Informations et symptômes du patient" : "Lecture de la température IoT"}
         </CardDescription>
         <StepIndicator currentStep={step} totalSteps={2} />
       </CardHeader>
 
-      <CardContent className="overflow-hidden">
+      <CardContent className="overflow-hidden px-6 pb-6">
         <AnimatePresence mode="wait" custom={direction}>
           {step === 1 && (
             <motion.div
@@ -203,11 +192,11 @@ const PatientForm = () => {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
               className="space-y-4"
             >
-              <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-1.5 text-sm font-medium">
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                   <User className="w-3.5 h-3.5 text-muted-foreground" />
                   Nom du patient <span className="text-destructive">*</span>
                 </Label>
@@ -216,13 +205,13 @@ const PatientForm = () => {
                   placeholder="Ex: Jean Dupont"
                   value={formData.name}
                   onChange={(e) => handleChange("name", e.target.value)}
-                  className={errors.name ? "border-destructive" : ""}
+                  className={errors.name ? "border-destructive/50 focus-visible:ring-destructive/30" : ""}
                 />
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+                {errors.name && <ErrorMessage text={errors.name} />}
               </div>
 
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5 text-sm font-medium">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                   <Activity className="w-3.5 h-3.5 text-muted-foreground" />
                   Symptômes <span className="text-destructive">*</span>
                 </Label>
@@ -237,13 +226,13 @@ const PatientForm = () => {
                   placeholder="Autre symptôme (optionnel)..."
                   value={formData.customSymptom}
                   onChange={(e) => handleChange("customSymptom" as keyof FormData, e.target.value)}
-                  className="min-h-[60px] mt-1"
+                  className="min-h-[56px] mt-1.5 text-sm"
                 />
-                {errors.symptoms && <p className="text-xs text-destructive">{errors.symptoms}</p>}
+                {errors.symptoms && <ErrorMessage text={errors.symptoms} />}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="age" className="text-sm font-medium text-muted-foreground">
+              <div className="space-y-1.5">
+                <Label htmlFor="age" className="text-xs font-medium text-muted-foreground">
                   Âge (optionnel)
                 </Label>
                 <Input
@@ -255,9 +244,9 @@ const PatientForm = () => {
                 />
               </div>
 
-              <Button onClick={handleNext} className="w-full mt-2" size="lg">
+              <Button onClick={handleNext} className="w-full mt-3 shadow-sm" size="lg">
                 Suivant
-                <ArrowRight className="w-4 h-4 ml-1" />
+                <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </motion.div>
           )}
@@ -270,11 +259,11 @@ const PatientForm = () => {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
               className="space-y-4"
             >
-              <div className="space-y-2">
-                <Label htmlFor="temperature" className="flex items-center gap-1.5 text-sm font-medium">
+              <div className="space-y-1.5">
+                <Label htmlFor="temperature" className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                   <Thermometer className="w-3.5 h-3.5 text-muted-foreground" />
                   Température (°C) <span className="text-destructive">*</span>
                 </Label>
@@ -287,42 +276,29 @@ const PatientForm = () => {
                   placeholder="Ex: 37.5"
                   value={formData.temperature}
                   onChange={(e) => handleChange("temperature", e.target.value)}
-                  className={errors.temperature ? "border-destructive" : ""}
+                  className={errors.temperature ? "border-destructive/50 focus-visible:ring-destructive/30" : ""}
                 />
-                {errors.temperature && <p className="text-xs text-destructive">{errors.temperature}</p>}
+                {errors.temperature && <ErrorMessage text={errors.temperature} />}
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                className="w-full gap-2"
+                className="w-full gap-2 h-11"
                 onClick={simulateESP32Read}
                 disabled={isReadingTemp}
               >
-                {isReadingTemp ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Wifi className="w-4 h-4" />
-                )}
+                {isReadingTemp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4" />}
                 {isReadingTemp ? "Lecture en cours..." : "Lire température depuis ESP32"}
               </Button>
 
-              <div className="flex gap-3 mt-2">
-                <Button variant="outline" onClick={handleBack} className="flex-1" size="lg">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
+              <div className="flex gap-3 mt-3">
+                <Button variant="outline" onClick={handleBack} className="flex-1 h-11" size="lg">
+                  <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Retour
                 </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                  size="lg"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                  ) : (
-                    <Send className="w-4 h-4 mr-1" />
-                  )}
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 h-11 shadow-sm" size="lg">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Send className="w-4 h-4 mr-1.5" />}
                   {isSubmitting ? "Envoi..." : "Envoyer"}
                 </Button>
               </div>
@@ -333,5 +309,14 @@ const PatientForm = () => {
     </Card>
   );
 };
+
+function ErrorMessage({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-destructive/80">
+      <AlertCircle className="w-3 h-3 shrink-0" />
+      <span>{text}</span>
+    </div>
+  );
+}
 
 export default PatientForm;
